@@ -448,11 +448,20 @@ class ZephyrAnalytics {
             });
         });
 
-        // Add customer form
-        document.getElementById('addCustomerForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addCustomer();
-        });
+        // Add customer form (remove existing listeners first)
+        const addForm = document.getElementById('addCustomerForm');
+        if (addForm) {
+            // Remove existing listeners
+            const newForm = addForm.cloneNode(true);
+            addForm.parentNode.replaceChild(newForm, addForm);
+            
+            // Add single listener
+            newForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.addCustomer();
+            });
+        }
 
         // Mobile menu toggle
         document.getElementById('mobileMenuToggle')?.addEventListener('click', () => {

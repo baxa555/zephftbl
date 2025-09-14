@@ -11,40 +11,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // JSONBin.io - Cloud JSON Storage (Free & Public)
-        const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3/b';
-        const CUSTOMERS_BIN_ID = '676c8d9bad19ca34f8c4e123'; // Demo bin ID
-        const LOGS_BIN_ID = '676c8d9bad19ca34f8c4e124'; // Demo bin ID
-
-        // Database operations using JSONBin.io
+        // Simple localStorage-first approach with sync info
         class FirebaseDB {
             // Get all customers
             static async getCustomers() {
                 try {
-                    console.log('🔥 Loading customers from JSONBin...');
-                    const response = await fetch(`${JSONBIN_BASE_URL}/${CUSTOMERS_BIN_ID}/latest`, {
-                        headers: {
-                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch customers');
-                    }
-
-                    const result = await response.json();
-                    const customers = result.record || [];
+                    console.log('💾 Loading customers from localStorage...');
                     
-                    console.log('✅ Loaded', customers.length, 'customers from JSONBin');
-                    return customers;
-                } catch (error) {
-                    console.error('JSONBin get customers error:', error);
-                    // Fallback to localStorage
+                    // First load from localStorage
                     const localData = localStorage.getItem('footballCustomers');
                     if (localData) {
-                        console.log('📱 Using localStorage fallback');
-                        return JSON.parse(localData);
+                        const customers = JSON.parse(localData);
+                        console.log('✅ Loaded', customers.length, 'customers from localStorage');
+                        return customers;
                     }
+                    
+                    // No local data, create defaults
+                    const defaultCustomers = this.getDefaultCustomers();
+                    localStorage.setItem('footballCustomers', JSON.stringify(defaultCustomers));
+                    console.log('✅ Created default customers');
+                    return defaultCustomers;
+                    
+                } catch (error) {
+                    console.error('localStorage error:', error);
                     return this.getDefaultCustomers();
                 }
             }
@@ -52,53 +41,34 @@
             // Add customer
             static async addCustomer(customerData) {
                 try {
-                    console.log('🔥 Saving customer to JSONBin:', customerData.name);
+                    console.log('💾 Saving customer to localStorage:', customerData.name);
                     
-                    // First get current customers
+                    // Get current customers
                     const customers = await this.getCustomers();
                     
-                    // Add new customer with ID
+                    // Add new customer with unique ID
                     customerData.id = Date.now() + Math.random();
                     customerData.created_at = new Date().toISOString();
                     customers.push(customerData);
                     
-                    // Update JSONBin
-                    const response = await fetch(`${JSONBIN_BASE_URL}/${CUSTOMERS_BIN_ID}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
-                        },
-                        body: JSON.stringify(customers)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to save customer');
-                    }
-                    
-                    // Also save to localStorage as backup
+                    // Save to localStorage
                     localStorage.setItem('footballCustomers', JSON.stringify(customers));
                     
-                    console.log('✅ Customer saved to JSONBin successfully');
+                    console.log('✅ Customer saved to localStorage successfully');
+                    console.log('📤 SYNC INFO: Share this JSON with other admins for manual sync:');
+                    console.log('📋 Copy this to sync:', JSON.stringify(customers, null, 2));
+                    
                     return { success: true, id: customerData.id };
                 } catch (error) {
-                    console.error('JSONBin save error:', error);
-                    
-                    // Fallback to localStorage only
-                    const customers = JSON.parse(localStorage.getItem('footballCustomers') || '[]');
-                    customerData.id = Date.now() + Math.random();
-                    customers.push(customerData);
-                    localStorage.setItem('footballCustomers', JSON.stringify(customers));
-                    
-                    console.log('📱 Saved to localStorage as fallback');
-                    return { success: true, id: customerData.id };
+                    console.error('localStorage save error:', error);
+                    return { success: false, error: error.message };
                 }
             }
 
             // Delete customer
             static async deleteCustomer(customerName) {
                 try {
-                    console.log('🔥 Deleting customer from JSONBin:', customerName);
+                    console.log('💾 Deleting customer from localStorage:', customerName);
                     
                     // Get current customers
                     const customers = await this.getCustomers();
@@ -106,55 +76,27 @@
                     // Remove customer
                     const filteredCustomers = customers.filter(c => c.name !== customerName);
                     
-                    // Update JSONBin
-                    const response = await fetch(`${JSONBIN_BASE_URL}/${CUSTOMERS_BIN_ID}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
-                        },
-                        body: JSON.stringify(filteredCustomers)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to delete customer');
-                    }
-                    
-                    // Also update localStorage
+                    // Save to localStorage
                     localStorage.setItem('footballCustomers', JSON.stringify(filteredCustomers));
                     
-                    console.log('✅ Customer deleted from JSONBin successfully');
+                    console.log('✅ Customer deleted from localStorage successfully');
                     return { success: true };
                 } catch (error) {
-                    console.error('JSONBin delete error:', error);
-                    
-                    // Fallback to localStorage only
-                    const customers = JSON.parse(localStorage.getItem('footballCustomers') || '[]');
-                    const filteredCustomers = customers.filter(c => c.name !== customerName);
-                    localStorage.setItem('footballCustomers', JSON.stringify(filteredCustomers));
-                    
-                    console.log('📱 Deleted from localStorage as fallback');
-                    return { success: true };
+                    console.error('localStorage delete error:', error);
+                    return { success: false, error: error.message };
                 }
             }
 
             // Get admin logs
             static async getAdminLogs() {
                 try {
-                    const response = await fetch(`${JSONBIN_BASE_URL}/${LOGS_BIN_ID}/latest`, {
-                        headers: {
-                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch logs');
+                    const localLogs = localStorage.getItem('footballAdminLogs');
+                    if (localLogs) {
+                        return JSON.parse(localLogs);
                     }
-
-                    const result = await response.json();
-                    return result.record || [];
+                    return [];
                 } catch (error) {
-                    console.error('JSONBin get logs error:', error);
+                    console.error('localStorage get logs error:', error);
                     return [];
                 }
             }
@@ -170,19 +112,12 @@
                     logData.created_at = new Date().toISOString();
                     logs.push(logData);
                     
-                    // Update JSONBin
-                    await fetch(`${JSONBIN_BASE_URL}/${LOGS_BIN_ID}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
-                        },
-                        body: JSON.stringify(logs)
-                    });
+                    // Save to localStorage
+                    localStorage.setItem('footballAdminLogs', JSON.stringify(logs));
                     
                     return { success: true };
                 } catch (error) {
-                    console.error('JSONBin add log error:', error);
+                    console.error('localStorage add log error:', error);
                     return { success: false, error: error.message };
                 }
             }
@@ -208,7 +143,8 @@
         }
 
         window.FirebaseDB = FirebaseDB;
-        console.log('🔥 JSONBin Database initialized successfully');
+        console.log('💾 localStorage Database initialized successfully');
+        console.log('📤 MANUAL SYNC: Admins can share JSON data via console for sync');
     </script>
     <script src="firebase-handler.js"></script>
     <script src="json-handler.js"></script>
