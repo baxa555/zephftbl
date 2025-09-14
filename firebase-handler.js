@@ -131,40 +131,66 @@ class FirebaseHandler {
     // Calculate customer data fields
     static calculateCustomerData(customer) {
         const today = new Date();
-        const purchaseDate = new Date(customer.purchaseDate.split('.').reverse().join('-'));
+        
+        // Safely parse purchase date
+        let purchaseDate;
+        try {
+            if (customer.purchaseDate && customer.purchaseDate.includes('.')) {
+                const parts = customer.purchaseDate.split('.');
+                purchaseDate = new Date(`20${parts[2]}-${parts[1]}-${parts[0]}`);
+            } else {
+                purchaseDate = new Date(customer.purchaseDate || new Date());
+            }
+            
+            // Check if date is valid
+            if (isNaN(purchaseDate.getTime())) {
+                purchaseDate = new Date();
+            }
+        } catch (error) {
+            console.error('Date parse error:', error);
+            purchaseDate = new Date();
+        }
         
         // Calculate revenue
-        let revenue = 0;
-        switch (customer.package) {
-            case 'GS Premium':
-            case 'FB Premium':
-            case 'BJK Premium':
-                revenue = customer.type === 'sınırsız' ? 3588 : 
-                         customer.type === 'sezonluk' ? 1794 : 299;
-                break;
-            case 'Premium':
-                revenue = customer.type === 'sınırsız' ? 2388 : 
-                         customer.type === 'sezonluk' ? 1194 : 199;
-                break;
+        let revenue = customer.revenue || 0;
+        if (revenue === 0) {
+            switch (customer.package) {
+                case 'GS Premium':
+                case 'FB Premium':
+                case 'BJK Premium':
+                    revenue = customer.type === 'sınırsız' ? 3588 : 
+                             customer.type === 'sezonluk' ? 1794 : 299;
+                    break;
+                case 'Premium':
+                    revenue = customer.type === 'sınırsız' ? 2388 : 
+                             customer.type === 'sezonluk' ? 1194 : 199;
+                    break;
+            }
         }
         
         // Calculate end date and remaining days
-        let endDate = null;
-        let remainingDays = null;
+        let endDate = customer.endDate || null;
+        let remainingDays = customer.remainingDays || null;
         
-        if (customer.type === 'sezonluk') {
-            endDate = '2026-06-30';
-            const end = new Date(endDate);
-            remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-        } else if (customer.type === '1 aylık') {
-            const end = new Date(purchaseDate);
-            end.setMonth(end.getMonth() + 1);
-            endDate = end.toISOString().split('T')[0];
-            remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+        try {
+            if (customer.type === 'sezonluk') {
+                endDate = '2026-06-30';
+                const end = new Date(endDate);
+                remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+            } else if (customer.type === '1 aylık') {
+                const end = new Date(purchaseDate);
+                end.setMonth(end.getMonth() + 1);
+                endDate = end.toISOString().split('T')[0];
+                remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+            }
+        } catch (error) {
+            console.error('Date calculation error:', error);
+            endDate = null;
+            remainingDays = null;
         }
         
         // Calculate status
-        let status = 'active';
+        let status = customer.status || 'active';
         if (remainingDays !== null) {
             if (remainingDays <= 0) status = 'expired';
             else if (remainingDays <= 7) status = 'expiring';
