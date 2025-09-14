@@ -129,20 +129,26 @@ class ZephyrAnalytics {
     }
 
     async loadCustomersData() {
-        // First try direct JSON file loading
+        // First try API database
         try {
-            const data = await JSONHandler.loadCustomers();
-            if (Array.isArray(data) && data.length > 0) {
-                // Save to localStorage as backup
-                localStorage.setItem('footballCustomers', JSON.stringify(data));
-                console.log('✅ Loaded', data.length, 'customers from JSON file');
-                return data.map(customer => ({
-                    ...customer,
-                    endDate: customer.endDate ? new Date(customer.endDate) : null
-                }));
+            console.log('🔥 Primary: Loading from API database...');
+            const response = await fetch('/api/kv-db?action=get-customers');
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    console.log('✅ Loaded', data.length, 'customers from API database');
+                    // Save to localStorage as backup
+                    localStorage.setItem('footballCustomers', JSON.stringify(data));
+                    return data.map(customer => ({
+                        ...customer,
+                        endDate: customer.endDate ? new Date(customer.endDate) : null
+                    }));
+                }
             }
+            throw new Error('API response not ok');
         } catch (error) {
-            console.error('❌ JSON file error:', error.message);
+            console.error('❌ API database error:', error.message);
         }
         
         // Try API as backup
@@ -195,11 +201,9 @@ class ZephyrAnalytics {
     }
 
     async saveCustomer(customerData) {
-        // Primary: Try API first (will update JSON files directly)
+        // Save directly via API
         try {
-            console.log('📡 Saving customer via API:', customerData.name);
-            // API calls re-enabled - using real database
-            console.log('🔥 Using real API database');
+            console.log('🔥 Saving customer via API:', customerData.name);
             const response = await fetch('/api/kv-db?action=add-customer', {
                 method: 'POST',
                 headers: {
@@ -314,7 +318,7 @@ class ZephyrAnalytics {
         // Initialize localStorage with data if it doesn't exist
         await this.initializeLocalStorage();
         
-        this.customersData = await FirebaseHandler.loadCustomers();
+        this.customersData = await this.loadCustomersData();
         this.adminLogs = await this.loadAdminLogs();
         this.filteredData = [...this.customersData];
     }
@@ -1206,11 +1210,11 @@ class ZephyrAnalytics {
         }
 
         try {
-            const success = await FirebaseHandler.saveCustomer(customerData);
+            const success = await this.saveCustomer(customerData);
             
             if (success) {
                 // Reload customers data from server
-                this.customersData = await FirebaseHandler.loadCustomers();
+                this.customersData = await this.loadCustomersData();
                 this.filteredData = [...this.customersData];
                 
                 // Add admin log
@@ -1255,11 +1259,11 @@ class ZephyrAnalytics {
         const customer = this.customersData.find(c => c.name === selectedCustomer);
         
         try {
-            const success = await FirebaseHandler.deleteCustomer(selectedCustomer);
+            const success = await this.deleteCustomer(selectedCustomer);
             
             if (success) {
                 // Reload customers data from server
-                this.customersData = await FirebaseHandler.loadCustomers();
+                this.customersData = await this.loadCustomersData();
                 this.filteredData = [...this.customersData];
                 
                 // Add admin log
