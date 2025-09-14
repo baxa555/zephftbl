@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1757811958753.3281,
+    "type": "login",
+    "action": "Zeph sisteme giriş yaptı",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:05:58",
+    "date": "2025-09-14T01:05:58.768Z"
+  },
+  {
+    "id": 1757811969354.8765,
+    "type": "login",
+    "action": "Zeph sisteme giriş yaptı",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:06:09",
+    "date": "2025-09-14T01:06:09.354Z"
+  },
+  {
+    "id": 1757812022880.493,
+    "type": "login",
+    "action": "Zeph sisteme giriş yaptı",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:07:02",
+    "date": "2025-09-14T01:07:02.894Z"
+  },
+  {
+    "id": 1757812029792.5767,
+    "type": "delete",
+    "action": "Zen müşterisi silindi (Premium - sınırsız)",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:07:09",
+    "date": "2025-09-14T01:07:09.792Z"
+  },
+  {
+    "id": 1757812052722.756,
+    "type": "login",
+    "action": "Zeph sisteme giriş yaptı",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:07:32",
+    "date": "2025-09-14T01:07:32.722Z"
+  },
+  {
+    "id": 1757812086354.226,
+    "type": "add",
+    "action": "elveen müşterisi eklendi (GS Premium - sınırsız)",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:08:06",
+    "date": "2025-09-14T01:08:06.354Z"
+  },
+  {
+    "id": 1757812086354.453,
+    "type": "add",
+    "action": "elveen müşterisi eklendi (GS Premium - sınırsız)",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:08:06",
+    "date": "2025-09-14T01:08:06.354Z"
+  },
+  {
+    "id": 1757813668000.2715,
+    "type": "login",
+    "action": "Zeph sisteme giriş yaptı",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 04:34:28",
+    "date": "2025-09-14T01:34:28.014Z"
+  },
+  {
+    "id": 1757827510768.0374,
+    "type": "login",
+    "action": "Zeph sisteme giriş yaptı",
+    "admin": "Zeph",
+    "timestamp": "14.09.2025 08:25:10",
+    "date": "2025-09-14T05:25:10.781Z"
+  },
+  {
+    "id": 1757827562522.4033,
+    "type": "login",
+    "action": "Admin 2 sisteme giriş yaptı",
+    "admin": "Admin 2",
+    "timestamp": "14.09.2025 08:26:02",
+    "date": "2025-09-14T05:26:02.522Z"
+  },
+  {
+    "id": 1757827624596.9778,
+    "type": "add",
+    "action": "sontest müşterisi eklendi (GS Premium - sınırsız)",
+    "admin": "Admin 2",
+    "timestamp": "14.09.2025 08:27:04",
+    "date": "2025-09-14T05:27:04.596Z"
+  },
+  {
+    "id": 1757827624596.0112,
+    "type": "add",
+    "action": "sontest müşterisi eklendi (GS Premium - sınırsız)",
+    "admin": "Admin 2",
+    "timestamp": "14.09.2025 08:27:04",
+    "date": "2025-09-14T05:27:04.596Z"
+  }
+]

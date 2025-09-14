@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futbol Paketi Analitikleri | Müşteri Paneli</title>
+    <link rel="stylesheet" href="styles-pro.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="json-handler.js"></script>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader">
+            <div class="spinner"></div>
+            <p>Futbol Paketi Paneli Yüklüyor...</p>
+        </div>
+    </div>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="logo.png" alt="Zeph Logo" class="logo">
+                <div class="brand-info">
+                    <h3>Football</h3>
+                    <span>Dashboard</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="nav-menu">
+            <div class="nav-section">
+                <h4>DASHBOARD</h4>
+                <ul>
+                    <li class="nav-item active" data-section="overview">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Genel Bakış</span>
+                    </li>
+                    <li class="nav-item" data-section="customers">
+                        <i class="fas fa-users"></i>
+                        <span>Müşteriler</span>
+                        <span class="badge" id="customerCount">0</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h4>YÖNETİM</h4>
+                <ul>
+                    <li class="nav-item" data-section="subscriptions">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Abonelik Yönetimi</span>
+                    </li>
+                    <li class="nav-item" data-section="reports">
+                        <i class="fas fa-clock"></i>
+                        <span>Son Aktiviteler</span>
+                    </li>
+                    <li class="nav-item" data-section="admin-logs">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Admin Logları</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <p>Yönetici</p>
+                    <small>Çevrimiçi</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1 id="pageTitle">Genel Bakış</h1>
+                    <p id="pageSubtitle">Gerçek zamanlı abonelik analitikleri ve müşteri yönetimi</p>
+                </div>
+            </div>
+            <div class="top-bar-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Müşteri ara..." id="globalSearch">
+                </div>
+                <div class="notifications">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                </div>
+                <div class="date-time">
+                    <span id="currentDateTime"></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <!-- Overview Section -->
+            <section class="section active" id="overview">
+                <div class="dashboard-grid">
+                    <!-- KPI Cards -->
+                    <div class="kpi-section">
+                        <div class="kpi-card primary">
+                            <div class="kpi-header">
+                                <h3>Toplam Gelir</h3>
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="kpi-value">
+                                <span id="totalRevenue">₺0</span>
+                                <small class="trend positive">
+                                    <i class="fas fa-arrow-up"></i> +12.5%
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card success">
+                            <div class="kpi-header">
+                                <h3>Aktif Aboneler</h3>
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="kpi-value">
+                                <span id="activeSubscribers">0</span>
+                                <small class="trend positive">
+                                    <i class="fas fa-arrow-up"></i> +8.3%
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card warning">
+                            <div class="kpi-header">
+                                <h3>Yakında Bitenler</h3>
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="kpi-value">
+                                <span id="expiringSoon">0</span>
+                                <small class="trend negative">
+                                    <i class="fas fa-arrow-down"></i> -2.1%
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card info">
+                            <div class="kpi-header">
+                                <h3>Dönüşüm Oranı</h3>
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="kpi-value">
+                                <span id="conversionRate">94.2%</span>
+                                <small class="trend positive">
+                                    <i class="fas fa-arrow-up"></i> +1.8%
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Management Section -->
+                    <div class="customer-management-section">
+                        <div class="management-container">
+                            <div class="management-header">
+                                <h3><i class="fas fa-user-plus"></i> Müşteri Yönetimi</h3>
+                            </div>
+                            <div class="management-actions">
+                                <button class="btn-primary" onclick="zeph.showAddCustomerModal()">
+                                    <i class="fas fa-plus"></i>
+                                    Yeni Müşteri Ekle
+                                </button>
+                                <button class="btn-secondary" onclick="zeph.showDeleteCustomerModal()">
+                                    <i class="fas fa-trash"></i>
+                                    Müşteri Sil
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>Paket Dağılımı</h3>
+                            </div>
+                            <canvas id="packageChart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Customers Section -->
+            <section class="section" id="customers">
+                <div class="customers-header">
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-filter="all">Tüm Müşteriler</button>
+                            <button class="filter-btn" data-filter="unlimited">Sınırsız</button>
+                            <button class="filter-btn" data-filter="seasonal">Sezonluk</button>
+                            <button class="filter-btn" data-filter="monthly">Aylık</button>
+                            <button class="filter-btn" data-filter="expiring">Süresi Doluyor</button>
+                        </div>
+                        <div class="view-controls">
+                            <button class="view-btn active" data-view="table">
+                                <i class="fas fa-table"></i>
+                            </button>
+                            <button class="view-btn" data-view="cards">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <div class="table-controls">
+                        <div class="entries-control">
+                            <label>Göster 
+                                <select id="entriesPerPage">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                kayıt
+                            </label>
+                        </div>
+                        <div class="table-search">
+                            <input type="text" placeholder="Müşteri ara..." id="tableSearch">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrapper">
+                        <table class="data-table" id="customersTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-sort="name">
+                                        Müşteri <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="platform">
+                                        Platform <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="package">
+                                        Paket <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="purchaseDate">
+                                        Satın Alma Tarihi <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="endDate">
+                                        Bitiş Tarihi <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="remaining">
+                                        Kalan Gün <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="table-info">
+                            <span id="tableInfo">Showing 1 to 25 of 42 entries</span>
+                        </div>
+                        <div class="pagination" id="pagination">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Abonelik Yönetimi Section -->
+            <section class="section" id="subscriptions">
+                <div class="subscriptions-header">
+                    <h2>Abonelik Yönetimi</h2>
+                    <button class="btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Yeni Abonelik Ekle
+                    </button>
+                </div>
+                <div class="subscriptions-content">
+                    <div class="subscription-types">
+                        <div class="subscription-card unlimited">
+                            <h3>Sınırsız Paket</h3>
+                            <div class="package-stats">
+                                <span class="count" id="unlimitedCount">0</span>
+                                <span class="label">Aktif Kullanıcı</span>
+                            </div>
+                        </div>
+                        <div class="subscription-card seasonal">
+                            <h3>Sezonluk Paket</h3>
+                            <div class="package-stats">
+                                <span class="count" id="seasonalCount">0</span>
+                                <span class="label">Aktif Kullanıcı</span>
+                            </div>
+                        </div>
+                        <div class="subscription-card monthly">
+                            <h3>Aylık Paket</h3>
+                            <div class="package-stats">
+                                <span class="count" id="monthlyCount">0</span>
+                                <span class="label">Aktif Kullanıcı</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section (Recent Activities) -->
+            <section class="section" id="reports">
+                <div class="reports-header">
+                    <h2><i class="fas fa-clock"></i> Son Aktiviteler</h2>
+                    <div class="report-actions">
+                        <button class="btn-secondary" onclick="zeph.refreshActivities()">
+                            <i class="fas fa-sync-alt"></i>
+                            Yenile
+                        </button>
+                        <button class="btn-primary" onclick="zeph.exportActivities()">
+                            <i class="fas fa-download"></i>
+                            Dışa Aktar
+                        </button>
+                    </div>
+                </div>
+                <div class="activities-content">
+                    <div class="activities-grid" id="activitiesGrid">
+                        <!-- Activities will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Logs Section -->
+            <section class="section" id="admin-logs">
+                <div class="admin-logs-header">
+                    <h2><i class="fas fa-user-shield"></i> Admin Logları</h2>
+                    <div class="admin-info">
+                        <span>Aktif Admin: <strong id="currentAdmin"></strong></span>
+                        <button class="btn-secondary" onclick="zeph.logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Çıkış Yap
+                        </button>
+                    </div>
+                </div>
+                <div class="admin-logs-content">
+                    <div class="logs-filters">
+                        <button class="filter-btn active" onclick="zeph.filterLogs('all')">Tümü</button>
+                        <button class="filter-btn" onclick="zeph.filterLogs('add')">Eklenen</button>
+                        <button class="filter-btn" onclick="zeph.filterLogs('delete')">Silinen</button>
+                        <button class="filter-btn" onclick="zeph.filterLogs('login')">Giriş</button>
+                    </div>
+                    <div class="logs-grid" id="adminLogsGrid">
+                        <!-- Admin logs will be loaded here -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-modal">
+            <div class="login-header">
+                <img src="logo.png" alt="Logo" class="login-logo">
+                <h2>Futbol Paketi Paneli</h2>
+                <p>Admin Girişi</p>
+            </div>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Kullanıcı Adı</label>
+                    <input type="text" id="username" name="username" placeholder="Kullanıcı adınızı girin" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" name="password" placeholder="Şifrenizi girin" required>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Giriş Yap
+                </button>
+                <div class="login-error" id="loginError"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal-overlay" id="addCustomerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Yeni Müşteri Ekle</h3>
+                <button class="modal-close" onclick="zeph.closeModal('addCustomerModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-form" id="addCustomerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerName">Müşteri Adı</label>
+                        <input type="text" id="customerName" name="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="platform">Platform</label>
+                        <select id="platform" name="platform" required>
+                            <option value="">Seçin</option>
+                            <option value="discord">Discord</option>
+                            <option value="telegram">Telegram</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="discordId">Discord/Telegram ID</label>
+                        <input type="text" id="discordId" name="discordId" placeholder="Opsiyonel">
+                    </div>
+                    <div class="form-group">
+                        <label for="purchaseDate">Satın Alma Tarihi</label>
+                        <input type="text" id="purchaseDate" name="purchaseDate" placeholder="DD.MM.YY" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="packageType">Paket Türü</label>
+                        <select id="packageType" name="packageType" required>
+                            <option value="">Seçin</option>
+                            <option value="sınırsız">Sınırsız</option>
+                            <option value="sezonluk">Sezonluk</option>
+                            <option value="1 aylık">1 Aylık</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="package">Paket</label>
+                        <select id="package" name="package" required>
+                            <option value="">Seçin</option>
+                            <option value="GS Premium">GS Premium</option>
+                            <option value="FB Premium">FB Premium</option>
+                            <option value="BJK Premium">BJK Premium</option>
+                            <option value="Premium">Premium</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="note">Not</label>
+                    <input type="text" id="note" name="note" placeholder="Opsiyonel not">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="zeph.closeModal('addCustomerModal')">İptal</button>
+                    <button type="submit" class="btn-primary">Müşteriyi Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Customer Modal -->
+    <div class="modal-overlay" id="deleteCustomerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Müşteri Sil</h3>
+                <button class="modal-close" onclick="zeph.closeModal('deleteCustomerModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-form">
+                <div class="form-group">
+                    <label for="deleteCustomerSelect">Silinecek Müşteriyi Seçin</label>
+                    <select id="deleteCustomerSelect" name="deleteCustomerSelect" required>
+                        <option value="">Müşteri seçin...</option>
+                    </select>
+                </div>
+                <div class="delete-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Bu işlem geri alınamaz! Müşteri kalıcı olarak silinecektir.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="zeph.closeModal('deleteCustomerModal')">İptal</button>
+                    <button type="button" class="btn-danger" onclick="zeph.deleteSelectedCustomer()">Müşteriyi Sil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script-pro.js"></script>
+</body>
+</html>
