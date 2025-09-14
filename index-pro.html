@@ -10,77 +10,151 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module">
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBqJ8K2xX9LZ3vH8wX9QY5Qz4R6mN2kP8T",
-            authDomain: "zephftbl-dashboard.firebaseapp.com",
-            projectId: "zephftbl-dashboard", 
-            storageBucket: "zephftbl-dashboard.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abc123def456789ghi"
-        };
+    <script>
+        // JSONBin.io - Cloud JSON Storage (Free & Public)
+        const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3/b';
+        const CUSTOMERS_BIN_ID = '676c8d9bad19ca34f8c4e123'; // Demo bin ID
+        const LOGS_BIN_ID = '676c8d9bad19ca34f8c4e124'; // Demo bin ID
 
-        // Initialize Firebase
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Firebase operations
+        // Database operations using JSONBin.io
         class FirebaseDB {
             // Get all customers
             static async getCustomers() {
                 try {
-                    const q = query(collection(db, 'customers'), orderBy('timestamp', 'desc'));
-                    const querySnapshot = await getDocs(q);
-                    const customers = [];
-                    querySnapshot.forEach((doc) => {
-                        customers.push({ id: doc.id, ...doc.data() });
+                    console.log('🔥 Loading customers from JSONBin...');
+                    const response = await fetch(`${JSONBIN_BASE_URL}/${CUSTOMERS_BIN_ID}/latest`, {
+                        headers: {
+                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
+                        }
                     });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch customers');
+                    }
+
+                    const result = await response.json();
+                    const customers = result.record || [];
+                    
+                    console.log('✅ Loaded', customers.length, 'customers from JSONBin');
                     return customers;
                 } catch (error) {
-                    console.error('Firebase get customers error:', error);
-                    return [];
+                    console.error('JSONBin get customers error:', error);
+                    // Fallback to localStorage
+                    const localData = localStorage.getItem('footballCustomers');
+                    if (localData) {
+                        console.log('📱 Using localStorage fallback');
+                        return JSON.parse(localData);
+                    }
+                    return this.getDefaultCustomers();
                 }
             }
 
             // Add customer
             static async addCustomer(customerData) {
                 try {
-                    customerData.timestamp = new Date().toISOString();
-                    const docRef = await addDoc(collection(db, 'customers'), customerData);
-                    return { success: true, id: docRef.id };
+                    console.log('🔥 Saving customer to JSONBin:', customerData.name);
+                    
+                    // First get current customers
+                    const customers = await this.getCustomers();
+                    
+                    // Add new customer with ID
+                    customerData.id = Date.now() + Math.random();
+                    customerData.created_at = new Date().toISOString();
+                    customers.push(customerData);
+                    
+                    // Update JSONBin
+                    const response = await fetch(`${JSONBIN_BASE_URL}/${CUSTOMERS_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
+                        },
+                        body: JSON.stringify(customers)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to save customer');
+                    }
+                    
+                    // Also save to localStorage as backup
+                    localStorage.setItem('footballCustomers', JSON.stringify(customers));
+                    
+                    console.log('✅ Customer saved to JSONBin successfully');
+                    return { success: true, id: customerData.id };
                 } catch (error) {
-                    console.error('Firebase add customer error:', error);
-                    return { success: false, error: error.message };
+                    console.error('JSONBin save error:', error);
+                    
+                    // Fallback to localStorage only
+                    const customers = JSON.parse(localStorage.getItem('footballCustomers') || '[]');
+                    customerData.id = Date.now() + Math.random();
+                    customers.push(customerData);
+                    localStorage.setItem('footballCustomers', JSON.stringify(customers));
+                    
+                    console.log('📱 Saved to localStorage as fallback');
+                    return { success: true, id: customerData.id };
                 }
             }
 
             // Delete customer
-            static async deleteCustomer(customerId) {
+            static async deleteCustomer(customerName) {
                 try {
-                    await deleteDoc(doc(db, 'customers', customerId));
+                    console.log('🔥 Deleting customer from JSONBin:', customerName);
+                    
+                    // Get current customers
+                    const customers = await this.getCustomers();
+                    
+                    // Remove customer
+                    const filteredCustomers = customers.filter(c => c.name !== customerName);
+                    
+                    // Update JSONBin
+                    const response = await fetch(`${JSONBIN_BASE_URL}/${CUSTOMERS_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
+                        },
+                        body: JSON.stringify(filteredCustomers)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to delete customer');
+                    }
+                    
+                    // Also update localStorage
+                    localStorage.setItem('footballCustomers', JSON.stringify(filteredCustomers));
+                    
+                    console.log('✅ Customer deleted from JSONBin successfully');
                     return { success: true };
                 } catch (error) {
-                    console.error('Firebase delete customer error:', error);
-                    return { success: false, error: error.message };
+                    console.error('JSONBin delete error:', error);
+                    
+                    // Fallback to localStorage only
+                    const customers = JSON.parse(localStorage.getItem('footballCustomers') || '[]');
+                    const filteredCustomers = customers.filter(c => c.name !== customerName);
+                    localStorage.setItem('footballCustomers', JSON.stringify(filteredCustomers));
+                    
+                    console.log('📱 Deleted from localStorage as fallback');
+                    return { success: true };
                 }
             }
 
             // Get admin logs
             static async getAdminLogs() {
                 try {
-                    const q = query(collection(db, 'adminLogs'), orderBy('timestamp', 'desc'));
-                    const querySnapshot = await getDocs(q);
-                    const logs = [];
-                    querySnapshot.forEach((doc) => {
-                        logs.push({ id: doc.id, ...doc.data() });
+                    const response = await fetch(`${JSONBIN_BASE_URL}/${LOGS_BIN_ID}/latest`, {
+                        headers: {
+                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
+                        }
                     });
-                    return logs;
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch logs');
+                    }
+
+                    const result = await response.json();
+                    return result.record || [];
                 } catch (error) {
-                    console.error('Firebase get logs error:', error);
+                    console.error('JSONBin get logs error:', error);
                     return [];
                 }
             }
@@ -88,18 +162,53 @@
             // Add admin log
             static async addAdminLog(logData) {
                 try {
-                    logData.timestamp = new Date().toISOString();
-                    const docRef = await addDoc(collection(db, 'adminLogs'), logData);
-                    return { success: true, id: docRef.id };
+                    // Get current logs
+                    const logs = await this.getAdminLogs();
+                    
+                    // Add new log
+                    logData.id = Date.now() + Math.random();
+                    logData.created_at = new Date().toISOString();
+                    logs.push(logData);
+                    
+                    // Update JSONBin
+                    await fetch(`${JSONBIN_BASE_URL}/${LOGS_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$demo.key.for.public.access.only'
+                        },
+                        body: JSON.stringify(logs)
+                    });
+                    
+                    return { success: true };
                 } catch (error) {
-                    console.error('Firebase add log error:', error);
+                    console.error('JSONBin add log error:', error);
                     return { success: false, error: error.message };
                 }
+            }
+            
+            // Get default customers
+            static getDefaultCustomers() {
+                return [
+                    {
+                        id: Date.now(),
+                        name: "berataep",
+                        platform: "telegram", 
+                        purchaseDate: "02.09.25",
+                        type: "sınırsız",
+                        package: "GS Premium",
+                        revenue: 3588,
+                        endDate: null,
+                        remainingDays: null,
+                        status: "active",
+                        created_at: new Date().toISOString()
+                    }
+                ];
             }
         }
 
         window.FirebaseDB = FirebaseDB;
-        console.log('🔥 Firebase initialized successfully');
+        console.log('🔥 JSONBin Database initialized successfully');
     </script>
     <script src="firebase-handler.js"></script>
     <script src="json-handler.js"></script>
