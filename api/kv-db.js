@@ -1,7 +1,36 @@
-// Vercel KV Database operations
-import { kv } from '@vercel/kv';
+// Simple in-memory database with persistence
+const fs = require('fs');
+const path = require('path');
 
-export default async function handler(req, res) {
+// File paths for data persistence
+const customersFile = path.join(process.cwd(), 'data-customers.json');
+const logsFile = path.join(process.cwd(), 'data-logs.json');
+
+// Helper functions
+function readJSONFile(filePath, defaultValue = []) {
+    try {
+        if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath, 'utf8');
+            return JSON.parse(data);
+        }
+        return defaultValue;
+    } catch (error) {
+        console.error('Read error:', error);
+        return defaultValue;
+    }
+}
+
+function writeJSONFile(filePath, data) {
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Write error:', error);
+        return false;
+    }
+}
+
+module.exports = async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -16,7 +45,7 @@ export default async function handler(req, res) {
     try {
         if (action === 'get-customers') {
             // GET all customers
-            const customers = await kv.get('football:customers') || [];
+            const customers = readJSONFile(customersFile, []);
             return res.status(200).json(customers);
 
         } else if (action === 'add-customer' && req.method === 'POST') {
@@ -24,7 +53,7 @@ export default async function handler(req, res) {
             const customerData = req.body;
             
             // Get existing customers
-            const customers = await kv.get('football:customers') || [];
+            const customers = readJSONFile(customersFile, []);
             
             // Add calculated fields
             customerData.id = Date.now() + Math.random();
@@ -76,7 +105,7 @@ export default async function handler(req, res) {
             
             // Add to array and save
             customers.push(customerData);
-            await kv.set('football:customers', customers);
+            writeJSONFile(customersFile, customers);
             
             return res.status(200).json({ success: true, customer: customerData });
 
@@ -84,28 +113,28 @@ export default async function handler(req, res) {
             // DELETE customer
             const { name } = req.body;
             
-            const customers = await kv.get('football:customers') || [];
+            const customers = readJSONFile(customersFile, []);
             const filteredCustomers = customers.filter(c => c.name !== name);
             
-            await kv.set('football:customers', filteredCustomers);
+            writeJSONFile(customersFile, filteredCustomers);
             
             return res.status(200).json({ success: true });
 
         } else if (action === 'get-logs') {
             // GET admin logs
-            const logs = await kv.get('football:adminlogs') || [];
+            const logs = readJSONFile(logsFile, []);
             return res.status(200).json(logs);
 
         } else if (action === 'add-log' && req.method === 'POST') {
             // ADD admin log
             const logData = req.body;
             
-            const logs = await kv.get('football:adminlogs') || [];
+            const logs = readJSONFile(logsFile, []);
             logData.id = Date.now() + Math.random();
             logData.created_at = new Date().toISOString();
             logs.push(logData);
             
-            await kv.set('football:adminlogs', logs);
+            writeJSONFile(logsFile, logs);
             
             return res.status(200).json({ success: true });
 
