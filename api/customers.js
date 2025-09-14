@@ -1,14 +1,14 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+const fs = require('fs');
+const path = require('path');
 
 // Vercel'de dosya yolları
-const customersPath = join(process.cwd(), 'customers.json');
-const logsPath = join(process.cwd(), 'admin-logs.json');
+const customersPath = path.join(process.cwd(), 'customers.json');
+const logsPath = path.join(process.cwd(), 'admin-logs.json');
 
 // Helper function to read JSON file
 function readJSONFile(filePath) {
     try {
-        const data = readFileSync(filePath, 'utf8');
+        const data = fs.readFileSync(filePath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
         console.error('Error reading file:', error);
@@ -19,7 +19,7 @@ function readJSONFile(filePath) {
 // Helper function to write JSON file
 function writeJSONFile(filePath, data) {
     try {
-        writeFileSync(filePath, JSON.stringify(data, null, 2));
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error writing file:', error);
@@ -78,7 +78,7 @@ function calculateCustomerData(customer) {
     };
 }
 
-export default function handler(req, res) {
+module.exports = (req, res) => {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -134,4 +134,4 @@ export default function handler(req, res) {
         console.error('API Error:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
