@@ -1,22 +1,10 @@
 {
   "buildCommand": "echo 'No build needed'",
   "outputDirectory": ".",
-  "functions": {
-    "api/customers.js": {
-      "runtime": "@vercel/node@3.0.7"
-    },
-    "api/admin-logs.js": {
-      "runtime": "@vercel/node@3.0.7"
-    }
-  },
   "rewrites": [
     {
       "source": "/",
       "destination": "/index-pro.html"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
     }
   ]
 }
