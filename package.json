@@ -7,5 +7,7 @@
     "build": "echo 'Build complete'",
     "start": "vercel dev"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@vercel/kv": "^1.0.1"
+  }
 }

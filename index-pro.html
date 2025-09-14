@@ -11,29 +11,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Simple localStorage-first approach with sync info
+        // Vercel KV Database - Real cloud database 
         class FirebaseDB {
             // Get all customers
             static async getCustomers() {
                 try {
-                    console.log('💾 Loading customers from localStorage...');
+                    console.log('🔥 Loading customers from Vercel KV...');
                     
-                    // First load from localStorage
-                    const localData = localStorage.getItem('footballCustomers');
-                    if (localData) {
-                        const customers = JSON.parse(localData);
-                        console.log('✅ Loaded', customers.length, 'customers from localStorage');
-                        return customers;
+                    const response = await fetch('/api/kv-db?action=get-customers');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
-                    // No local data, create defaults
-                    const defaultCustomers = this.getDefaultCustomers();
-                    localStorage.setItem('footballCustomers', JSON.stringify(defaultCustomers));
-                    console.log('✅ Created default customers');
-                    return defaultCustomers;
+                    const customers = await response.json();
+                    console.log('✅ Loaded', customers.length, 'customers from Vercel KV');
                     
+                    // Backup to localStorage
+                    localStorage.setItem('footballCustomers', JSON.stringify(customers));
+                    
+                    return customers;
                 } catch (error) {
-                    console.error('localStorage error:', error);
+                    console.error('Vercel KV error:', error);
+                    
+                    // Fallback to localStorage
+                    const localData = localStorage.getItem('footballCustomers');
+                    if (localData) {
+                        console.log('📱 Using localStorage fallback');
+                        return JSON.parse(localData);
+                    }
+                    
                     return this.getDefaultCustomers();
                 }
             }
@@ -41,26 +48,24 @@
             // Add customer
             static async addCustomer(customerData) {
                 try {
-                    console.log('💾 Saving customer to localStorage:', customerData.name);
+                    console.log('🔥 Saving customer to Vercel KV:', customerData.name);
                     
-                    // Get current customers
-                    const customers = await this.getCustomers();
+                    const response = await fetch('/api/kv-db?action=add-customer', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(customerData)
+                    });
                     
-                    // Add new customer with unique ID
-                    customerData.id = Date.now() + Math.random();
-                    customerData.created_at = new Date().toISOString();
-                    customers.push(customerData);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
-                    // Save to localStorage
-                    localStorage.setItem('footballCustomers', JSON.stringify(customers));
+                    const result = await response.json();
+                    console.log('✅ Customer saved to Vercel KV successfully');
                     
-                    console.log('✅ Customer saved to localStorage successfully');
-                    console.log('📤 SYNC INFO: Share this JSON with other admins for manual sync:');
-                    console.log('📋 Copy this to sync:', JSON.stringify(customers, null, 2));
-                    
-                    return { success: true, id: customerData.id };
+                    return result;
                 } catch (error) {
-                    console.error('localStorage save error:', error);
+                    console.error('Vercel KV save error:', error);
                     return { success: false, error: error.message };
                 }
             }
@@ -68,21 +73,22 @@
             // Delete customer
             static async deleteCustomer(customerName) {
                 try {
-                    console.log('💾 Deleting customer from localStorage:', customerName);
+                    console.log('🔥 Deleting customer from Vercel KV:', customerName);
                     
-                    // Get current customers
-                    const customers = await this.getCustomers();
+                    const response = await fetch('/api/kv-db?action=delete-customer', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: customerName })
+                    });
                     
-                    // Remove customer
-                    const filteredCustomers = customers.filter(c => c.name !== customerName);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
-                    // Save to localStorage
-                    localStorage.setItem('footballCustomers', JSON.stringify(filteredCustomers));
-                    
-                    console.log('✅ Customer deleted from localStorage successfully');
+                    console.log('✅ Customer deleted from Vercel KV successfully');
                     return { success: true };
                 } catch (error) {
-                    console.error('localStorage delete error:', error);
+                    console.error('Vercel KV delete error:', error);
                     return { success: false, error: error.message };
                 }
             }
@@ -90,13 +96,16 @@
             // Get admin logs
             static async getAdminLogs() {
                 try {
-                    const localLogs = localStorage.getItem('footballAdminLogs');
-                    if (localLogs) {
-                        return JSON.parse(localLogs);
+                    const response = await fetch('/api/kv-db?action=get-logs');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    return [];
+                    
+                    const logs = await response.json();
+                    return logs;
                 } catch (error) {
-                    console.error('localStorage get logs error:', error);
+                    console.error('Vercel KV logs error:', error);
                     return [];
                 }
             }
@@ -104,20 +113,19 @@
             // Add admin log
             static async addAdminLog(logData) {
                 try {
-                    // Get current logs
-                    const logs = await this.getAdminLogs();
+                    const response = await fetch('/api/kv-db?action=add-log', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(logData)
+                    });
                     
-                    // Add new log
-                    logData.id = Date.now() + Math.random();
-                    logData.created_at = new Date().toISOString();
-                    logs.push(logData);
-                    
-                    // Save to localStorage
-                    localStorage.setItem('footballAdminLogs', JSON.stringify(logs));
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
                     return { success: true };
                 } catch (error) {
-                    console.error('localStorage add log error:', error);
+                    console.error('Vercel KV add log error:', error);
                     return { success: false, error: error.message };
                 }
             }
@@ -143,8 +151,8 @@
         }
 
         window.FirebaseDB = FirebaseDB;
-        console.log('💾 localStorage Database initialized successfully');
-        console.log('📤 MANUAL SYNC: Admins can share JSON data via console for sync');
+        console.log('🔥 Vercel KV Database initialized successfully');
+        console.log('🌍 GLOBAL DATABASE: All admins share same data automatically!');
     </script>
     <script src="firebase-handler.js"></script>
     <script src="json-handler.js"></script>
