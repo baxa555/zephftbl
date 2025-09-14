@@ -692,10 +692,36 @@ class ZephyrAnalytics {
     }
 
     formatDate(date) {
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}.${month}.${year}`;
+        // Handle string dates or null/undefined
+        if (!date) return '-';
+        
+        if (typeof date === 'string') {
+            if (date.includes('-')) {
+                // ISO format: 2025-09-14 -> 14.09.2025
+                const parts = date.split('-');
+                return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            } else if (date.includes('.')) {
+                // Already in DD.MM.YYYY format
+                return date;
+            }
+            return date;
+        }
+        
+        // Handle Date objects
+        try {
+            const dateObj = new Date(date);
+            if (isNaN(dateObj.getTime())) {
+                return '-';
+            }
+            
+            const day = dateObj.getDate().toString().padStart(2, '0');
+            const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+            const year = dateObj.getFullYear();
+            return `${day}.${month}.${year}`;
+        } catch (error) {
+            console.error('Date format error:', error);
+            return '-';
+        }
     }
 
     getStatusText(status) {
