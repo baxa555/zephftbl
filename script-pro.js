@@ -198,8 +198,8 @@ class ZephyrAnalytics {
         // Primary: Try API first (will update JSON files directly)
         try {
             console.log('📡 Saving customer via API:', customerData.name);
-            // API disabled - using localStorage directly
-            throw new Error('Using localStorage instead of API');
+            // Using Firebase Database  
+            throw new Error('Firebase will handle this');
             const response = await fetch('/api/customers?action=add-customer', {
                 method: 'POST',
                 headers: {
@@ -267,8 +267,8 @@ class ZephyrAnalytics {
         // Primary: Try API first (will update JSON files directly)
         try {
             console.log('📡 Deleting customer via API:', customerName);
-            // API disabled - using localStorage directly
-            throw new Error('Using localStorage instead of API');
+            // Using Firebase Database  
+            throw new Error('Firebase will handle this');
             const response = await fetch('/api/customers?action=delete-customer', {
                 method: 'DELETE',
                 headers: {
@@ -314,7 +314,7 @@ class ZephyrAnalytics {
         // Initialize localStorage with data if it doesn't exist
         await this.initializeLocalStorage();
         
-        this.customersData = await this.loadCustomersData();
+        this.customersData = await FirebaseHandler.loadCustomers();
         this.adminLogs = await this.loadAdminLogs();
         this.filteredData = [...this.customersData];
     }
@@ -393,8 +393,8 @@ class ZephyrAnalytics {
         // Primary: Try API first (will update JSON files directly)
         try {
             console.log('📡 Saving admin log via API:', logData.action);
-            // API disabled - using localStorage directly
-            throw new Error('Using localStorage instead of API');
+            // Using Firebase Database  
+            throw new Error('Firebase will handle this');
             const response = await fetch('/api/admin-logs?action=add-log', {
                 method: 'POST',
                 headers: {
@@ -1171,11 +1171,11 @@ class ZephyrAnalytics {
         }
 
         try {
-            const success = await this.saveCustomer(customerData);
+            const success = await FirebaseHandler.saveCustomer(customerData);
             
             if (success) {
                 // Reload customers data from server
-                this.customersData = await this.loadCustomersData();
+                this.customersData = await FirebaseHandler.loadCustomers();
                 this.filteredData = [...this.customersData];
                 
                 // Add admin log
@@ -1220,11 +1220,11 @@ class ZephyrAnalytics {
         const customer = this.customersData.find(c => c.name === selectedCustomer);
         
         try {
-            const success = await this.deleteCustomer(selectedCustomer);
+            const success = await FirebaseHandler.deleteCustomer(selectedCustomer);
             
             if (success) {
                 // Reload customers data from server
-                this.customersData = await this.loadCustomersData();
+                this.customersData = await FirebaseHandler.loadCustomers();
                 this.filteredData = [...this.customersData];
                 
                 // Add admin log
