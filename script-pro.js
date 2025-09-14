@@ -148,6 +148,8 @@ class ZephyrAnalytics {
         // Try API as backup
         try {
             console.log('📡 Trying API as backup...');
+            // API disabled - using localStorage directly  
+            throw new Error('Using localStorage instead of API');
             const response = await fetch('/api/customers?action=get-customers');
             
             if (!response.ok) {
@@ -196,6 +198,8 @@ class ZephyrAnalytics {
         // Primary: Try API first (will update JSON files directly)
         try {
             console.log('📡 Saving customer via API:', customerData.name);
+            // API disabled - using localStorage directly
+            throw new Error('Using localStorage instead of API');
             const response = await fetch('/api/customers?action=add-customer', {
                 method: 'POST',
                 headers: {
@@ -263,6 +267,8 @@ class ZephyrAnalytics {
         // Primary: Try API first (will update JSON files directly)
         try {
             console.log('📡 Deleting customer via API:', customerName);
+            // API disabled - using localStorage directly
+            throw new Error('Using localStorage instead of API');
             const response = await fetch('/api/customers?action=delete-customer', {
                 method: 'DELETE',
                 headers: {
@@ -387,6 +393,8 @@ class ZephyrAnalytics {
         // Primary: Try API first (will update JSON files directly)
         try {
             console.log('📡 Saving admin log via API:', logData.action);
+            // API disabled - using localStorage directly
+            throw new Error('Using localStorage instead of API');
             const response = await fetch('/api/admin-logs?action=add-log', {
                 method: 'POST',
                 headers: {
